@@ -266,12 +266,12 @@ body {
   padding-right: 60px;
 }
 .rss-item a.scrolling .rss-marquee {
-  animation: rss-scroll 12s linear infinite;
+  animation: rss-scroll 8s linear infinite;
 }
 
 @keyframes rss-scroll {
   0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  100% { transform: translateX(calc(-50% - 30px)); }
 }
 
 /* ── footer ──────────────────────────────────────────────── */
