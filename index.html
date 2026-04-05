@@ -245,7 +245,17 @@ body {
   display: block;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.rss-item a:hover {
+  animation: rss-scroll 8s linear infinite;
+}
+
+@keyframes rss-scroll {
+  0%   { transform: translateX(0); }
+  10%  { transform: translateX(0); }
+  90%  { transform: translateX(var(--scroll-dist, -50%)); }
+  100% { transform: translateX(var(--scroll-dist, -50%)); }
 }
 .rss-item a:hover { color: var(--green-h); text-decoration: underline; }
 
