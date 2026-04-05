@@ -243,37 +243,32 @@ body {
   color: var(--green);
   text-decoration: none;
   font-size: 12px;
-  display: flex;
+  display: block;
   white-space: nowrap;
   width: 100%;
+  overflow: hidden;
 }
 
 .rss-item a:hover { color: var(--green-h); }
 
-.rss-marquee {
+.rss-marquee-track {
   display: inline-block;
-  padding-right: 60px;
-}
-.rss-item a .rss-marquee + .rss-marquee {
-  visibility: hidden;
-  width: 0;
-  padding-right: 0;
+  white-space: nowrap;
 }
 
-.rss-item a.scrolling .rss-marquee + .rss-marquee {
-  visibility: visible;
-  width: auto;
-  padding-right: 60px;
-}
-.rss-item a.scrolling .rss-marquee {
+.rss-item a.scrolling .rss-marquee-track {
   animation: rss-scroll 8s linear infinite;
 }
 
 @keyframes rss-scroll {
   0%   { transform: translateX(0); }
-  100% { transform: translateX(calc(-50% - 30px)); }
+  100% { transform: translateX(-50%); }
 }
 
+.rss-marquee {
+  display: inline-block;
+  padding-right: 60px;
+}
 /* ── footer ──────────────────────────────────────────────── */
 
 .foot {
@@ -618,18 +613,18 @@ function NP_fetchFeed(fd) {
       var href  = '';
       if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
       html += '<div class="rss-item">';
-      if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener"><span class="rss-marquee">'+NP_e(ttxt)+'</span><span class="rss-marquee">'+NP_e(ttxt)+'</span></a>';
+      if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener"><span class="rss-marquee-track"><span class="rss-marquee">'+NP_e(ttxt)+'</span><span class="rss-marquee">'+NP_e(ttxt)+'</span></span></a>';
       else      html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
       html += '</div>';
     }
     el.innerHTML = html;
-    // Delay check until browser has rendered
     setTimeout(function() {
       var links = el.querySelectorAll('.rss-item a');
       for (var j = 0; j < links.length; j++) {
         var a = links[j];
+        var track = a.querySelector('.rss-marquee-track');
         var marquee = a.querySelector('.rss-marquee');
-        if (marquee && marquee.offsetWidth > a.offsetWidth) {
+        if (track && marquee && marquee.offsetWidth > a.offsetWidth) {
           a.classList.add('scrolling');
         }
       }
