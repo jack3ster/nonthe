@@ -573,38 +573,65 @@ function NP_renderFeeds() {
   area.innerHTML = html;
   for (var j=0; j<NP_feeds.length; j++) NP_fetchFeed(NP_feeds[j]);
 }
-
 function NP_fetchFeed(fd) {
-  var el  = document.getElementById('fi_'+fd.id);
-  var proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(fd.url);
+  var el = document.getElementById('fi_' + fd.id);
 
-  fetch(proxy)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      var parser = new DOMParser();
-      var xml    = parser.parseFromString(data.contents, 'text/xml');
-      var items  = xml.querySelectorAll('item, entry');
-      if (!items || !items.length) {
-        el.innerHTML = '<span class="rss-msg">no items found</span>';
-        return;
+  function NP_parseXml(xmlText) {
+    if (!xmlText || typeof xmlText !== 'string') return null;
+    var parser = new DOMParser();
+    var xml = parser.parseFromString(xmlText, 'text/xml');
+    if (xml.querySelector('parsererror')) return null;
+    return xml;
+  }
+
+  function NP_renderXml(xml) {
+    var items = xml.querySelectorAll('item, entry');
+    if (!items || !items.length) {
+      el.innerHTML = '<span class="rss-msg">no items found</span>';
+      return;
+    }
+    var html = '';
+    var count = Math.min(items.length, 10);
+    for (var i = 0; i < count; i++) {
+      var item  = items[i];
+      var title = item.querySelector('title');
+      var link  = item.querySelector('link');
+      var ttxt  = title ? title.textContent.trim() : '(no title)';
+      var href  = '';
+      if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
+      html += '<div class="rss-item">';
+      if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener">'+NP_e(ttxt)+'</a>';
+      else      html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  function NP_tryAllOrigins() {
+    return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(fd.url))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data || !data.contents) throw new Error('empty');
+        return data.contents;
+      });
+  }
+
+  function NP_tryCorsproxy() {
+    return fetch('https://corsproxy.io/?url=' + encodeURIComponent(fd.url))
+      .then(function(r) { return r.text(); });
+  }
+
+  NP_tryAllOrigins()
+    .catch(function() { return NP_tryCorsproxy(); })
+    .then(function(xmlText) {
+      var xml = NP_parseXml(xmlText);
+      if (xml) {
+        NP_renderXml(xml);
+      } else {
+        el.innerHTML = '<span class="rss-msg">could not load feed</span>';
       }
-      var html  = '';
-      var count = Math.min(items.length, 10);
-      for (var i=0; i<count; i++) {
-        var item  = items[i];
-        var title = item.querySelector('title');
-        var link  = item.querySelector('link');
-        var ttxt  = title ? title.textContent.trim() : '(no title)';
-        var href  = '';
-        if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
-        html += '<div class="rss-item">';
-        if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener">'+NP_e(ttxt)+'</a>';
-        else      html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
-        html += '</div>';
-      }
-      el.innerHTML = html;
     })
-    .catch(function(){
+    .catch(function() {
       el.innerHTML = '<span class="rss-msg">could not load feed</span>';
     });
 }
