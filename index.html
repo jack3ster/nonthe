@@ -235,6 +235,7 @@ body {
 .rss-item {
   padding: 2px 0;
   border-bottom: 1px solid var(--bg3);
+  overflow: hidden;
 }
 .rss-item:last-child { border-bottom: none; }
 
@@ -242,21 +243,25 @@ body {
   color: var(--green);
   text-decoration: none;
   font-size: 12px;
-  display: block;
+  display: flex;
   white-space: nowrap;
-  overflow: hidden;
-  position: relative;
+  width: 100%;
 }
 
-.rss-item a:hover {
-  animation: rss-scroll 8s linear infinite;
+.rss-item a:hover { color: var(--green-h); }
+
+.rss-marquee {
+  display: inline-block;
+  padding-right: 60px;
+}
+
+.rss-item a.scrolling .rss-marquee {
+  animation: rss-scroll 12s linear infinite;
 }
 
 @keyframes rss-scroll {
   0%   { transform: translateX(0); }
-  10%  { transform: translateX(0); }
-  90%  { transform: translateX(var(--scroll-dist, -50%)); }
-  100% { transform: translateX(var(--scroll-dist, -50%)); }
+  100% { transform: translateX(-50%); }
 }
 
 /* ── footer ──────────────────────────────────────────────── */
@@ -603,11 +608,20 @@ function NP_fetchFeed(fd) {
       var href  = '';
       if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
       html += '<div class="rss-item">';
-      if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener">'+NP_e(ttxt)+'</a>';
+      if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener"><span class="rss-marquee">'+NP_e(ttxt)+'</span><span class="rss-marquee">'+NP_e(ttxt)+'</span></a>';
       else      html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
       html += '</div>';
     }
     el.innerHTML = html;
+    // Check each link — only animate if text overflows
+    var links = el.querySelectorAll('.rss-item a');
+    for (var j = 0; j < links.length; j++) {
+      var a = links[j];
+      var marquee = a.querySelector('.rss-marquee');
+      if (marquee && marquee.offsetWidth > a.offsetWidth) {
+        a.classList.add('scrolling');
+      }
+    }
   }
 
   function NP_tryAllOrigins() {
