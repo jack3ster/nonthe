@@ -631,8 +631,8 @@ function NP_fetchFeed(fd) {
         el.innerHTML = '<span class="rss-msg">could not load feed</span>';
       }
     })
-    .catch(function() {
-      el.innerHTML = '<span class="rss-msg">could not load feed</span>';
+    .catch(function(err) {
+      el.innerHTML = '<span class="rss-msg">could not load feed: ' + err + '</span>';
     });
 }
 
