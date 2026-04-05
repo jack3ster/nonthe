@@ -255,11 +255,15 @@ body {
   padding-right: 60px;
 }
 .rss-item a .rss-marquee + .rss-marquee {
-  display: none;
+  visibility: hidden;
+  width: 0;
+  padding-right: 0;
 }
 
 .rss-item a.scrolling .rss-marquee + .rss-marquee {
-  display: inline-block;
+  visibility: visible;
+  width: auto;
+  padding-right: 60px;
 }
 .rss-item a.scrolling .rss-marquee {
   animation: rss-scroll 12s linear infinite;
