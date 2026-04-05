@@ -613,15 +613,17 @@ function NP_fetchFeed(fd) {
       html += '</div>';
     }
     el.innerHTML = html;
-    // Check each link — only animate if text overflows
-    var links = el.querySelectorAll('.rss-item a');
-    for (var j = 0; j < links.length; j++) {
-      var a = links[j];
-      var marquee = a.querySelector('.rss-marquee');
-      if (marquee && marquee.offsetWidth > a.offsetWidth) {
-        a.classList.add('scrolling');
+    // Delay check until browser has rendered
+    setTimeout(function() {
+      var links = el.querySelectorAll('.rss-item a');
+      for (var j = 0; j < links.length; j++) {
+        var a = links[j];
+        var marquee = a.querySelector('.rss-marquee');
+        if (marquee && marquee.offsetWidth > a.offsetWidth) {
+          a.classList.add('scrolling');
+        }
       }
-    }
+    }, 500);
   }
 
   function NP_tryAllOrigins() {
