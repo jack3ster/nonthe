@@ -254,7 +254,13 @@ body {
   display: inline-block;
   padding-right: 60px;
 }
+.rss-item a .rss-marquee + .rss-marquee {
+  display: none;
+}
 
+.rss-item a.scrolling .rss-marquee + .rss-marquee {
+  display: inline-block;
+}
 .rss-item a.scrolling .rss-marquee {
   animation: rss-scroll 12s linear infinite;
 }
