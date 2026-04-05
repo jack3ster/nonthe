@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>nonthe</title>
+<style>
+:root {
+  --bg:      #0e0e0e;
+  --bg2:     #141414;
+  --bg3:     #1a1a1a;
+  --border:  #2a2a2a;
+  --dim:     #444;
+  --mid:     #787868;
+  --text:    #c4c4b4;
+  --bright:  #e4e4d4;
+  --link:    #7ab4cc;
+  --link-h:  #a8d4ec;
+  --green:   #82a87a;
+  --green-h: #a4c89a;
+  --red:     #8a4444;
+  --red-h:   #cc6666;
+  --accent:  #b8a878;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+}
+
+.page {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px 14px 40px;
+}
+
+/* ── header ─────────────────────────────────────────────── */
+
+.hdr {
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.hdr-name {
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--bright);
+  margin: 0;
+  font-weight: normal;
+}
+
+.hdr-sub {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+
+/* ── toolbar ─────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--mid);
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 0;
+  transition: border-color 0.1s, color 0.1s;
+  -webkit-appearance: none;
+}
+.btn:hover  { border-color: var(--mid); color: var(--text); }
+.btn.on     { border-color: var(--accent); color: var(--accent); }
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn.danger:hover { border-color: var(--red-h); color: var(--red-h); }
+
+/* ── forms ───────────────────────────────────────────────── */
+
+.form-panel {
+  display: none;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.form-panel.open { display: block; }
+
+.form-row { margin-bottom: 8px; }
+
+.form-lbl {
+  display: block;
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 7px;
+  -webkit-appearance: none;
+  border-radius: 0;
+  outline: none;
+}
+.form-input:focus, .form-select:focus { border-color: var(--mid); }
+.form-select option { background: var(--bg); }
+
+.form-btns { display: flex; gap: 8px; margin-top: 10px; }
+
+/* ── section ─────────────────────────────────────────────── */
+
+.sec { margin-bottom: 16px; }
+
+.sec-label {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--bg3);
+}
+
+/* ── link item ───────────────────────────────────────────── */
+
+.lnk {
+  display: flex;
+  align-items: center;
+  padding: 3px 0;
+  gap: 5px;
+  border-bottom: 1px solid transparent;
+}
+.lnk:last-child { border-bottom: none; }
+
+.lnk a {
+  color: var(--link);
+  text-decoration: none;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lnk a:hover { color: var(--link-h); text-decoration: underline; }
+
+.lnk-note {
+  color: var(--dim);
+  font-size: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lnk-edit {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.editing .lnk-edit { display: flex; }
+.editing .lnk { padding: 4px 0; }
+
+.mv, .dl {
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0 3px;
+  line-height: 1;
+  font-size: 13px;
+}
+.mv { color: var(--border); }
+.mv:hover { color: var(--text); }
+.dl { color: var(--red); }
+.dl:hover { color: var(--red-h); }
+
+/* ── rss section ─────────────────────────────────────────── */
+
+.rss-wrap {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.rss-block { margin-bottom: 14px; }
+
+.rss-head {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rss-del {
+  background: none;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  padding: 0;
+  display: none;
+}
+.editing .rss-del { display: inline; }
+.rss-del:hover { color: var(--red-h); }
+
+.rss-item {
+  padding: 2px 0;
+  border-bottom: 1px solid var(--bg3);
+}
+.rss-item:last-child { border-bottom: none; }
+
+.rss-item a {
+  color: var(--green);
+  text-decoration: none;
+  font-size: 12px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rss-item a:hover { color: var(--green-h); text-decoration: underline; }
+
+.rss-msg {
+  font-size: 11px;
+  color: var(--dim);
+  font-style: italic;
+  padding: 2px 0;
+}
+
+/* ── footer ──────────────────────────────────────────────── */
+
+.foot {
+  margin-top: 28px;
+  font-size: 9px;
+  color: var(--bg3);
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* ── fade-in ─────────────────────────────────────────────── */
+
+@keyframes fadein { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+.page { animation: fadein 0.25s ease; }
+</style>
+</head>
+<body>
+<div class="page" id="page">
+
+  <!-- header -->
+  <header class="hdr">
+    <h1 class="hdr-name">nonthe</h1>
+    <span class="hdr-sub">nonetheless</span>
+  </header>
+
+  <!-- toolbar -->
+  <div class="toolbar">
+    <button class="btn" id="editBtn"   onclick="NP_toggleEdit()">edit</button>
+    <button class="btn" id="addLnkBtn" onclick="NP_toggleAddLink()" style="display:none">+ link</button>
+    <button class="btn" id="addFedBtn" onclick="NP_toggleAddFeed()">+ feed</button>
+  </div>
+
+  <!-- add link form -->
+  <div class="form-panel" id="addLinkPanel">
+    <div class="form-row">
+      <label class="form-lbl">label</label>
+      <input class="form-input" id="fl_label" type="text" placeholder="e.g. Marginalia">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">url</label>
+      <input class="form-input" id="fl_url" type="url" placeholder="https://...">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">note (optional)</label>
+      <input class="form-input" id="fl_note" type="text" placeholder="short description">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">section</label>
+      <select class="form-select" id="fl_sec"></select>
+    </div>
+    <div class="form-btns">
+      <button class="btn on" onclick="NP_addLink()">add</button>
+      <button class="btn"    onclick="NP_toggleAddLink()">cancel</button>
+    </div>
+  </div>
+
+  <!-- add feed form -->
+  <div class="form-panel" id="addFeedPanel">
+    <div class="form-row">
+      <label class="form-lbl">feed name</label>
+      <input class="form-input" id="ff_name" type="text" placeholder="e.g. Lobsters">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">rss / atom url</label>
+      <input class="form-input" id="ff_url" type="url" placeholder="https://...feed.xml">
+    </div>
+    <div class="form-btns">
+      <button class="btn on" onclick="NP_addFeed()">add</button>
+      <button class="btn"    onclick="NP_toggleAddFeed()">cancel</button>
+    </div>
+  </div>
+
+  <!-- links -->
+  <div id="linksArea"></div>
+
+  <!-- rss -->
+  <div class="rss-wrap">
+    <div class="sec-label">feeds</div>
+    <div id="feedsArea"></div>
+  </div>
+
+  <div class="foot">&mdash; nonthe &mdash;</div>
+</div>
+
+<script>
+// ── defaults ──────────────────────────────────────────────────────────────────
+
+var NP_DEF_LINKS = [
+  { id:'l1',  label:'Marginalia',       url:'https://marginalia-search.com',        note:'small web search',     sec:'search'    },
+  { id:'l2',  label:'Wiby',             url:'https://wiby.me',                      note:'old web search',       sec:'search'    },
+  { id:'l3',  label:'Cloudhiker',       url:'https://cloudhiker.net',               note:'random small web',     sec:'search'    },
+  { id:'l4',  label:'mastodon.social',  url:'https://mastodon.social',              note:'',                     sec:'fediverse' },
+  { id:'l5',  label:'music.social',     url:'https://music.social',                 note:'',                     sec:'fediverse' },
+  { id:'l6',  label:'fosstodon.org',    url:'https://fosstodon.org',                note:'privacy / foss',       sec:'fediverse' },
+  { id:'l7',  label:'merveilles.town',  url:'https://merveilles.town',              note:'art / ecology / tech', sec:'fediverse' },
+  { id:'l8',  label:'Tildes',           url:'https://tildes.net',                   note:'discussion',           sec:'community' },
+  { id:'l9',  label:'Last.fm',          url:'https://www.last.fm',                  note:'',                     sec:'music'     },
+  { id:'l10', label:'Rate Your Music',  url:'https://rateyourmusic.com',            note:'',                     sec:'music'     },
+  { id:'l11', label:'Vimeo Staff Picks',url:'https://vimeo.com/channels/staffpicks',note:'',                     sec:'art'       },
+  { id:'l12', label:'Are.na',           url:'https://www.are.na',                   note:'curation',             sec:'art'       },
+  { id:'l13', label:'Inoreader',        url:'https://www.inoreader.com',            note:'rss reader',           sec:'tools'     },
+];
+
+var NP_DEF_FEEDS = [
+  { id:'f1', name:'Lobsters', url:'https://lobste.rs/rss' },
+];
+
+// ── state ─────────────────────────────────────────────────────────────────────
+
+var NP_links    = [];
+var NP_feeds    = [];
+var NP_editing  = false;
+var NP_addLOpen = false;
+var NP_addFOpen = false;
+
+// ── storage ───────────────────────────────────────────────────────────────────
+
+function NP_save() {
+  try {
+    localStorage.setItem('np_links', JSON.stringify(NP_links));
+    localStorage.setItem('np_feeds', JSON.stringify(NP_feeds));
+  } catch(e) {}
+}
+
+function NP_load() {
+  try {
+    var ls = localStorage.getItem('np_links');
+    var lf = localStorage.getItem('np_feeds');
+    NP_links = ls ? JSON.parse(ls) : JSON.parse(JSON.stringify(NP_DEF_LINKS));
+    NP_feeds = lf ? JSON.parse(lf) : JSON.parse(JSON.stringify(NP_DEF_FEEDS));
+  } catch(e) {
+    NP_links = JSON.parse(JSON.stringify(NP_DEF_LINKS));
+    NP_feeds = JSON.parse(JSON.stringify(NP_DEF_FEEDS));
+  }
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+function NP_e(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function NP_uid() { return 'i' + Date.now() + Math.floor(Math.random()*1000); }
+
+function NP_secs() {
+  var seen = {}, out = [];
+  for (var i=0; i<NP_links.length; i++) {
+    var s = NP_links[i].sec || 'general';
+    if (!seen[s]) { seen[s]=1; out.push(s); }
+  }
+  return out;
+}
+
+// ── render links ──────────────────────────────────────────────────────────────
+
+function NP_renderLinks() {
+  var area = document.getElementById('linksArea');
+  var secs = NP_secs();
+  var html = '';
+
+  for (var si=0; si<secs.length; si++) {
+    var sec   = secs[si];
+    var items = NP_links.filter(function(l){ return (l.sec||'general')===sec; });
+    html += '<div class="sec">';
+    html += '<div class="sec-label">'+NP_e(sec)+'</div>';
+    for (var li=0; li<items.length; li++) {
+      var lk = items[li];
+      var gi = NP_links.indexOf(lk);
+      html += '<div class="lnk" id="lk_'+NP_e(lk.id)+'">';
+      html += '<div class="lnk-edit">';
+      html += '<button class="mv" onclick="NP_mv(\''+NP_e(lk.id)+'\',-1)" title="up">↑</button>';
+      html += '<button class="mv" onclick="NP_mv(\''+NP_e(lk.id)+'\',1)"  title="down">↓</button>';
+      html += '<button class="dl" onclick="NP_delLink(\''+NP_e(lk.id)+'\')" title="remove">✕</button>';
+      html += '</div>';
+      html += '<a href="'+NP_e(lk.url)+'" target="_blank" rel="noopener">'+NP_e(lk.label)+'</a>';
+      if (lk.note) html += '<span class="lnk-note">'+NP_e(lk.note)+'</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  area.innerHTML = html;
+  if (NP_editing) area.classList.add('editing');
+  else            area.classList.remove('editing');
+
+  NP_fillSecSelect();
+}
+
+function NP_fillSecSelect() {
+  var sel = document.getElementById('fl_sec');
+  if (!sel) return;
+  var secs = NP_secs();
+  var html = '';
+  for (var i=0; i<secs.length; i++) html += '<option value="'+NP_e(secs[i])+'">'+NP_e(secs[i])+'</option>';
+  html += '<option value="__new__">+ new section&hellip;</option>';
+  sel.innerHTML = html;
+}
+
+// ── link actions ──────────────────────────────────────────────────────────────
+
+function NP_toggleEdit() {
+  NP_editing = !NP_editing;
+  var btn    = document.getElementById('editBtn');
+  var addBtn = document.getElementById('addLnkBtn');
+  btn.textContent    = NP_editing ? 'done' : 'edit';
+  btn.className      = NP_editing ? 'btn on' : 'btn';
+  addBtn.style.display = NP_editing ? 'inline-block' : 'none';
+  if (!NP_editing && NP_addLOpen) NP_toggleAddLink();
+
+  var area = document.getElementById('linksArea');
+  if (NP_editing) area.classList.add('editing');
+  else            area.classList.remove('editing');
+
+  // toggle rss delete buttons
+  var blocks = document.querySelectorAll('.rss-block');
+  for (var i=0; i<blocks.length; i++) {
+    var d = blocks[i].querySelector('.rss-del');
+    if (d) d.style.display = NP_editing ? 'inline' : 'none';
+  }
+}
+
+function NP_toggleAddLink() {
+  NP_addLOpen = !NP_addLOpen;
+  var p = document.getElementById('addLinkPanel');
+  p.className = NP_addLOpen ? 'form-panel open' : 'form-panel';
+}
+
+function NP_addLink() {
+  var label = document.getElementById('fl_label').value.trim();
+  var url   = document.getElementById('fl_url').value.trim();
+  var note  = document.getElementById('fl_note').value.trim();
+  var secEl = document.getElementById('fl_sec');
+  var sec   = secEl.value;
+
+  if (sec === '__new__') {
+    sec = prompt('Section name:');
+    if (!sec) return;
+    sec = sec.trim().toLowerCase();
+  }
+  if (!label || !url) { alert('Label and URL are required.'); return; }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  NP_links.push({ id: NP_uid(), label:label, url:url, note:note, sec:sec||'general' });
+  document.getElementById('fl_label').value = '';
+  document.getElementById('fl_url').value   = '';
+  document.getElementById('fl_note').value  = '';
+  NP_save();
+  NP_renderLinks();
+}
+
+function NP_delLink(id) {
+  NP_links = NP_links.filter(function(l){ return l.id !== id; });
+  NP_save();
+  NP_renderLinks();
+}
+
+function NP_mv(id, dir) {
+  var idx = -1;
+  for (var i=0; i<NP_links.length; i++) { if (NP_links[i].id===id){ idx=i; break; } }
+  if (idx===-1) return;
+  var ni = idx+dir;
+  if (ni<0 || ni>=NP_links.length) return;
+  var tmp = NP_links[idx]; NP_links[idx] = NP_links[ni]; NP_links[ni] = tmp;
+  NP_save();
+  NP_renderLinks();
+}
+
+// ── rss ───────────────────────────────────────────────────────────────────────
+
+function NP_toggleAddFeed() {
+  NP_addFOpen = !NP_addFOpen;
+  var p = document.getElementById('addFeedPanel');
+  p.className = NP_addFOpen ? 'form-panel open' : 'form-panel';
+}
+
+function NP_addFeed() {
+  var name = document.getElementById('ff_name').value.trim();
+  var url  = document.getElementById('ff_url').value.trim();
+  if (!name || !url) { alert('Name and URL required.'); return; }
+  NP_feeds.push({ id: NP_uid(), name:name, url:url });
+  document.getElementById('ff_name').value = '';
+  document.getElementById('ff_url').value  = '';
+  NP_addFOpen = false;
+  document.getElementById('addFeedPanel').className = 'form-panel';
+  NP_save();
+  NP_renderFeeds();
+}
+
+function NP_delFeed(id) {
+  NP_feeds = NP_feeds.filter(function(f){ return f.id !== id; });
+  NP_save();
+  NP_renderFeeds();
+}
+
+function NP_renderFeeds() {
+  var area = document.getElementById('feedsArea');
+  if (!NP_feeds.length) {
+    area.innerHTML = '<div class="rss-msg">no feeds — tap + feed to add one</div>';
+    return;
+  }
+  var html = '';
+  for (var i=0; i<NP_feeds.length; i++) {
+    var fd = NP_feeds[i];
+    html += '<div class="rss-block" id="fd_'+NP_e(fd.id)+'">';
+    html += '<div class="rss-head">';
+    html += NP_e(fd.name);
+    html += '<button class="rss-del" onclick="NP_delFeed(\''+NP_e(fd.id)+'\')" ';
+    html += 'style="display:'+(NP_editing?'inline':'none')+'">✕</button>';
+    html += '</div>';
+    html += '<div id="fi_'+NP_e(fd.id)+'" class="rss-msg">loading&hellip;</div>';
+    html += '</div>';
+  }
+  area.innerHTML = html;
+  for (var j=0; j<NP_feeds.length; j++) NP_fetchFeed(NP_feeds[j]);
+}
+
+function NP_fetchFeed(fd) {
+  var el  = document.getElementById('fi_'+fd.id);
+  var proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(fd.url);
+
+  fetch(proxy)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var parser = new DOMParser();
+      var xml    = parser.parseFromString(data.contents, 'text/xml');
+      var items  = xml.querySelectorAll('item, entry');
+      if (!items || !items.length) {
+        el.innerHTML = '<span class="rss-msg">no items found</span>';
+        return;
+      }
+      var html  = '';
+      var count = Math.min(items.length, 10);
+      for (var i=0; i<count; i++) {
+        var item  = items[i];
+        var title = item.querySelector('title');
+        var link  = item.querySelector('link');
+        var ttxt  = title ? title.textContent.trim() : '(no title)';
+        var href  = '';
+        if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
+        html += '<div class="rss-item">';
+        if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener">'+NP_e(ttxt)+'</a>';
+        else      html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
+        html += '</div>';
+      }
+      el.innerHTML = html;
+    })
+    .catch(function(){
+      el.innerHTML = '<span class="rss-msg">could not load feed</span>';
+    });
+}
+
+// ── init ──────────────────────────────────────────────────────────────────────
+
+NP_load();
+NP_renderLinks();
+NP_renderFeeds();
+</script>
+</body>
+</html>
