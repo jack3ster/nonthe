@@ -626,11 +626,28 @@ function NP_fetchFeed(fd) {
         var marquee = a.querySelector('.rss-marquee');
         if (track && marquee && marquee.offsetWidth > a.offsetWidth) {
           a.classList.add('scrolling');
+          var pw = marquee.offsetWidth + 60;
+          track.style.animationName = 'none';
+          track.style.transform = 'translateX(0)';
+          track.style.transition = 'none';
+          track.style.animation = 'none';
+          track.style.setProperty('animation', 
+            'none');
+          // Force reflow
+          track.offsetWidth;
+          track.style.animation = '';
+          track.style.setProperty(
+            'animation',
+            'rss-scroll-' + j + ' 8s linear infinite'
+          );
+          var sheet = document.styleSheets[0];
+          sheet.insertRule(
+            '@keyframes rss-scroll-' + j + ' { 0% { transform: translateX(0); } 100% { transform: translateX(-' + pw + 'px); } }',
+            sheet.cssRules.length
+          );
         }
       }
     }, 500);
-  }
-
   function NP_tryAllOrigins() {
     return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(fd.url))
       .then(function(r) { return r.json(); })
