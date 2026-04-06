@@ -662,7 +662,8 @@ function NP_renderXml(el, xml) {
 // ── fetch with AllOrigins → corsproxy.io fallback ─────────────────────────────
 
 function NP_fetchFeed(fd) {
-  var el = document.getElementById('fi_' + fd.id);
+  var el      = document.getElementById('fi_' + fd.id);
+  var cacheKey = 'np_feed_' + fd.id;
 
   function NP_parseXml(xmlText) {
     if (!xmlText || typeof xmlText !== 'string') return null;
@@ -672,6 +673,74 @@ function NP_fetchFeed(fd) {
     return xml;
   }
 
+  function NP_extractItems(xml) {
+    var nodes  = xml.querySelectorAll('item, entry');
+    var result = [];
+    var count  = Math.min(nodes.length, 10);
+    for (var i = 0; i < count; i++) {
+      var node  = nodes[i];
+      var title = node.querySelector('title');
+      var link  = node.querySelector('link');
+      var ttxt  = title ? title.textContent.trim() : '(no title)';
+      var href  = '';
+      if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
+      result.push({ t: ttxt, h: href });
+    }
+    return result;
+  }
+
+  function NP_renderItems(items) {
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+      var ttxt = items[i].t;
+      var href = items[i].h;
+      html += '<div class="rss-item">';
+      if (href) {
+        html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener">';
+        html += '<span class="rss-marquee-track">';
+        html += '<span class="rss-marquee">'+NP_e(ttxt)+'</span>';
+        html += '<span class="rss-marquee">'+NP_e(ttxt)+'</span>';
+        html += '</span></a>';
+      } else {
+        html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
+      }
+      html += '</div>';
+    }
+    el.innerHTML = html;
+    NP_initMarquees(el);
+  }
+
+  function NP_mergeItems(fresh, cached) {
+    // Build a set of hrefs already in fresh
+    var seen = {};
+    for (var i = 0; i < fresh.length; i++) {
+      seen[fresh[i].h || fresh[i].t] = true;
+    }
+    // Append cached items not already present, oldest first, up to 10 total
+    var merged = fresh.slice();
+    for (var j = 0; j < cached.length; j++) {
+      if (merged.length >= 10) break;
+      var key = cached[j].h || cached[j].t;
+      if (!seen[key]) {
+        seen[key] = true;
+        merged.push(cached[j]);
+      }
+    }
+    return merged;
+  }
+
+  // Show cached version immediately if available
+  var cached = null;
+  try {
+    var raw = localStorage.getItem(cacheKey);
+    if (raw) cached = JSON.parse(raw);
+  } catch(e) {}
+
+  if (cached && cached.length) {
+    NP_renderItems(cached);
+  }
+
+  // Fetch fresh in background
   function NP_tryAllOrigins() {
     return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(fd.url))
       .then(function(r) { return r.json(); })
@@ -690,17 +759,20 @@ function NP_fetchFeed(fd) {
     .catch(function() { return NP_tryCorsproxy(); })
     .then(function(xmlText) {
       var xml = NP_parseXml(xmlText);
-      if (xml) {
-        NP_renderXml(el, xml);
-      } else {
-        el.innerHTML = '<span class="rss-msg">could not load feed</span>';
-      }
+      if (!xml) return;
+      var fresh  = NP_extractItems(xml);
+      if (!fresh.length) return;
+      var merged = cached ? NP_mergeItems(fresh, cached) : fresh;
+      try { localStorage.setItem(cacheKey, JSON.stringify(merged)); } catch(e) {}
+      NP_renderItems(merged);
     })
     .catch(function() {
-      el.innerHTML = '<span class="rss-msg">could not load feed</span>';
+      if (!cached || !cached.length) {
+        el.innerHTML = '<span class="rss-msg">could not load feed</span>';
+      }
+      // if cached exists, leave it displayed and fail silently
     });
 }
-
 // ── init ──────────────────────────────────────────────────────────────────────
 
 NP_load();
