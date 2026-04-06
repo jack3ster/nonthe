@@ -88,8 +88,9 @@ body {
   transition: border-color 0.1s, color 0.1s;
   -webkit-appearance: none;
 }
-.btn:hover  { border-color: var(--mid); color: var(--text); }
-.btn.on     { border-color: var(--accent); color: var(--accent); }
+
+.btn:hover { border-color: var(--mid); color: var(--text); }
+.btn.on { border-color: var(--accent); color: var(--accent); }
 .btn.danger { border-color: var(--red); color: var(--red); }
 .btn.danger:hover { border-color: var(--red-h); color: var(--red-h); }
 
@@ -102,6 +103,7 @@ body {
   padding: 12px;
   margin-bottom: 14px;
 }
+
 .form-panel.open { display: block; }
 
 .form-row { margin-bottom: 8px; }
@@ -127,9 +129,9 @@ body {
   border-radius: 0;
   outline: none;
 }
+
 .form-input:focus, .form-select:focus { border-color: var(--mid); }
 .form-select option { background: var(--bg); }
-
 .form-btns { display: flex; gap: 8px; margin-top: 10px; }
 
 /* ── section ─────────────────────────────────────────────── */
@@ -155,6 +157,7 @@ body {
   gap: 5px;
   border-bottom: 1px solid transparent;
 }
+
 .lnk:last-child { border-bottom: none; }
 
 .lnk a {
@@ -166,6 +169,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .lnk a:hover { color: var(--link-h); text-decoration: underline; }
 
 .lnk-note {
@@ -181,6 +185,7 @@ body {
   gap: 2px;
   flex-shrink: 0;
 }
+
 .editing .lnk-edit { display: flex; }
 .editing .lnk { padding: 4px 0; }
 
@@ -193,6 +198,7 @@ body {
   line-height: 1;
   font-size: 13px;
 }
+
 .mv { color: var(--border); }
 .mv:hover { color: var(--text); }
 .dl { color: var(--red); }
@@ -229,6 +235,7 @@ body {
   padding: 0;
   display: none;
 }
+
 .editing .rss-del { display: inline; }
 .rss-del:hover { color: var(--red-h); }
 
@@ -237,6 +244,7 @@ body {
   border-bottom: 1px solid var(--bg3);
   overflow: hidden;
 }
+
 .rss-item:last-child { border-bottom: none; }
 
 .rss-item a {
@@ -245,7 +253,6 @@ body {
   font-size: 12px;
   display: block;
   white-space: nowrap;
-  width: 100%;
   overflow: hidden;
 }
 
@@ -256,29 +263,27 @@ body {
   white-space: nowrap;
 }
 
-.rss-item a.scrolling .rss-marquee-track {
-  animation: rss-scroll 8s linear infinite;
-}
-@keyframes rss-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-300px); }
-}
 .rss-marquee {
   display: inline-block;
   padding-right: 60px;
 }
 
-.rss-item a .rss-marquee + .rss-marquee {
-  visibility: hidden;
-  width: 0;
-  padding-right: 0;
+/* hide second copy until scrolling class is added */
+.rss-marquee + .rss-marquee {
+  display: none;
 }
 
-.rss-item a.scrolling .rss-marquee + .rss-marquee {
-  visibility: visible;
-  width: auto;
-  padding-right: 60px;
+.np-scrolling .rss-marquee + .rss-marquee {
+  display: inline-block;
 }
+
+.rss-msg {
+  font-size: 11px;
+  color: var(--dim);
+  font-style: italic;
+  padding: 2px 0;
+}
+
 /* ── footer ──────────────────────────────────────────────── */
 
 .foot {
@@ -294,6 +299,8 @@ body {
 @keyframes fadein { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
 .page { animation: fadein 0.25s ease; }
 </style>
+<!-- dedicated style tag for dynamically injected marquee keyframes -->
+<style id="NP_marquee_styles"></style>
 </head>
 <body>
 <div class="page" id="page">
@@ -388,11 +395,12 @@ var NP_DEF_FEEDS = [
 
 // ── state ─────────────────────────────────────────────────────────────────────
 
-var NP_links    = [];
-var NP_feeds    = [];
-var NP_editing  = false;
-var NP_addLOpen = false;
-var NP_addFOpen = false;
+var NP_links       = [];
+var NP_feeds       = [];
+var NP_editing     = false;
+var NP_addLOpen    = false;
+var NP_addFOpen    = false;
+var NP_mqCount     = 0;
 
 // ── storage ───────────────────────────────────────────────────────────────────
 
@@ -434,13 +442,44 @@ function NP_secs() {
   return out;
 }
 
+// ── marquee ───────────────────────────────────────────────────────────────────
+
+function NP_initMarquees(container) {
+  setTimeout(function() {
+    var styleTag = document.getElementById('NP_marquee_styles');
+    var links    = container.querySelectorAll('.rss-item a');
+    for (var i = 0; i < links.length; i++) {
+      var a       = links[i];
+      var track   = a.querySelector('.rss-marquee-track');
+      var marquee = a.querySelector('.rss-marquee');
+      if (!track || !marquee) continue;
+
+      var linkW    = a.offsetWidth;
+      var marqueeW = marquee.offsetWidth;
+      if (marqueeW <= linkW) continue; // fits, no scroll needed
+
+      // reveal second copy
+      a.classList.add('np-scrolling');
+
+      // speed: ~80px per second, minimum 4s
+      var dist = marqueeW;
+      var dur  = Math.max(4, Math.round(dist / 80));
+      var name = 'np_mq_' + (NP_mqCount++);
+
+      styleTag.textContent += '@keyframes ' + name +
+        '{ 0%{transform:translateX(0)} 100%{transform:translateX(-' + dist + 'px)} } ';
+
+      track.style.animation = name + ' ' + dur + 's linear infinite';
+    }
+  }, 600);
+}
+
 // ── render links ──────────────────────────────────────────────────────────────
 
 function NP_renderLinks() {
   var area = document.getElementById('linksArea');
   var secs = NP_secs();
   var html = '';
-
   for (var si=0; si<secs.length; si++) {
     var sec   = secs[si];
     var items = NP_links.filter(function(l){ return (l.sec||'general')===sec; });
@@ -448,11 +487,10 @@ function NP_renderLinks() {
     html += '<div class="sec-label">'+NP_e(sec)+'</div>';
     for (var li=0; li<items.length; li++) {
       var lk = items[li];
-      var gi = NP_links.indexOf(lk);
       html += '<div class="lnk" id="lk_'+NP_e(lk.id)+'">';
       html += '<div class="lnk-edit">';
       html += '<button class="mv" onclick="NP_mv(\''+NP_e(lk.id)+'\',-1)" title="up">↑</button>';
-      html += '<button class="mv" onclick="NP_mv(\''+NP_e(lk.id)+'\',1)"  title="down">↓</button>';
+      html += '<button class="mv" onclick="NP_mv(\''+NP_e(lk.id)+'\',1)" title="down">↓</button>';
       html += '<button class="dl" onclick="NP_delLink(\''+NP_e(lk.id)+'\')" title="remove">✕</button>';
       html += '</div>';
       html += '<a href="'+NP_e(lk.url)+'" target="_blank" rel="noopener">'+NP_e(lk.label)+'</a>';
@@ -461,11 +499,9 @@ function NP_renderLinks() {
     }
     html += '</div>';
   }
-
   area.innerHTML = html;
   if (NP_editing) area.classList.add('editing');
-  else            area.classList.remove('editing');
-
+  else area.classList.remove('editing');
   NP_fillSecSelect();
 }
 
@@ -485,16 +521,13 @@ function NP_toggleEdit() {
   NP_editing = !NP_editing;
   var btn    = document.getElementById('editBtn');
   var addBtn = document.getElementById('addLnkBtn');
-  btn.textContent    = NP_editing ? 'done' : 'edit';
-  btn.className      = NP_editing ? 'btn on' : 'btn';
+  btn.textContent      = NP_editing ? 'done' : 'edit';
+  btn.className        = NP_editing ? 'btn on' : 'btn';
   addBtn.style.display = NP_editing ? 'inline-block' : 'none';
   if (!NP_editing && NP_addLOpen) NP_toggleAddLink();
-
   var area = document.getElementById('linksArea');
   if (NP_editing) area.classList.add('editing');
-  else            area.classList.remove('editing');
-
-  // toggle rss delete buttons
+  else area.classList.remove('editing');
   var blocks = document.querySelectorAll('.rss-block');
   for (var i=0; i<blocks.length; i++) {
     var d = blocks[i].querySelector('.rss-del');
@@ -514,7 +547,6 @@ function NP_addLink() {
   var note  = document.getElementById('fl_note').value.trim();
   var secEl = document.getElementById('fl_sec');
   var sec   = secEl.value;
-
   if (sec === '__new__') {
     sec = prompt('Section name:');
     if (!sec) return;
@@ -522,7 +554,6 @@ function NP_addLink() {
   }
   if (!label || !url) { alert('Label and URL are required.'); return; }
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-
   NP_links.push({ id: NP_uid(), label:label, url:url, note:note, sec:sec||'general' });
   document.getElementById('fl_label').value = '';
   document.getElementById('fl_url').value   = '';
@@ -596,60 +627,51 @@ function NP_renderFeeds() {
   area.innerHTML = html;
   for (var j=0; j<NP_feeds.length; j++) NP_fetchFeed(NP_feeds[j]);
 }
+
+function NP_renderXml(el, xml) {
+  var items = xml.querySelectorAll('item, entry');
+  if (!items || !items.length) {
+    el.innerHTML = '<span class="rss-msg">no items found</span>';
+    return;
+  }
+  var html  = '';
+  var count = Math.min(items.length, 10);
+  for (var i = 0; i < count; i++) {
+    var item  = items[i];
+    var title = item.querySelector('title');
+    var link  = item.querySelector('link');
+    var ttxt  = title ? title.textContent.trim() : '(no title)';
+    var href  = '';
+    if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
+    html += '<div class="rss-item">';
+    if (href) {
+      html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener">';
+      html += '<span class="rss-marquee-track">';
+      html += '<span class="rss-marquee">'+NP_e(ttxt)+'</span>';
+      html += '<span class="rss-marquee">'+NP_e(ttxt)+'</span>';
+      html += '</span></a>';
+    } else {
+      html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+  NP_initMarquees(el);
+}
+
+// ── fetch with AllOrigins → corsproxy.io fallback ─────────────────────────────
+
 function NP_fetchFeed(fd) {
   var el = document.getElementById('fi_' + fd.id);
 
   function NP_parseXml(xmlText) {
     if (!xmlText || typeof xmlText !== 'string') return null;
     var parser = new DOMParser();
-    var xml = parser.parseFromString(xmlText, 'text/xml');
+    var xml    = parser.parseFromString(xmlText, 'text/xml');
     if (xml.querySelector('parsererror')) return null;
     return xml;
   }
 
-  function NP_renderXml(xml) {
-    var items = xml.querySelectorAll('item, entry');
-    if (!items || !items.length) {
-      el.innerHTML = '<span class="rss-msg">no items found</span>';
-      return;
-    }
-    var html = '';
-    var count = Math.min(items.length, 10);
-    for (var i = 0; i < count; i++) {
-      var item  = items[i];
-      var title = item.querySelector('title');
-      var link  = item.querySelector('link');
-      var ttxt  = title ? title.textContent.trim() : '(no title)';
-      var href  = '';
-      if (link) href = link.textContent.trim() || link.getAttribute('href') || '';
-      html += '<div class="rss-item">';
-      if (href) html += '<a href="'+NP_e(href)+'" target="_blank" rel="noopener"><span class="rss-marquee-track"><span class="rss-marquee">'+NP_e(ttxt)+'</span><span class="rss-marquee">'+NP_e(ttxt)+'</span></span></a>';
-      else      html += '<span style="color:var(--mid)">'+NP_e(ttxt)+'</span>';
-      html += '</div>';
-    }
-    el.innerHTML = html;
-    setTimeout(function() {
-      var links = el.querySelectorAll('.rss-item a');
-      for (var j = 0; j < links.length; j++) {
-        var a = links[j];
-        var track = a.querySelector('.rss-marquee-track');
-        var marquee = a.querySelector('.rss-marquee');
-        if (track && marquee && marquee.offsetWidth > a.offsetWidth) {
-          a.classList.add('scrolling');
-          var pw = marquee.offsetWidth + 60;
-          try {
-            var sheet = document.styleSheets[0];
-            sheet.insertRule(
-              '@keyframes rss-scroll-' + j + ' { 0% { transform: translateX(0); } 100% { transform: translateX(-' + pw + 'px); } }',
-              sheet.cssRules.length
-            );
-            track.style.animation = 'rss-scroll-' + j + ' 8s linear infinite';
-          } catch(e) {
-            track.style.animation = 'rss-scroll 8s linear infinite';
-          }
-        }
-      }
-    }, 500);
   function NP_tryAllOrigins() {
     return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(fd.url))
       .then(function(r) { return r.json(); })
@@ -669,13 +691,13 @@ function NP_fetchFeed(fd) {
     .then(function(xmlText) {
       var xml = NP_parseXml(xmlText);
       if (xml) {
-        NP_renderXml(xml);
+        NP_renderXml(el, xml);
       } else {
         el.innerHTML = '<span class="rss-msg">could not load feed</span>';
       }
     })
-    .catch(function(err) {
-      el.innerHTML = '<span class="rss-msg">could not load feed: ' + err + '</span>';
+    .catch(function() {
+      el.innerHTML = '<span class="rss-msg">could not load feed</span>';
     });
 }
 
