@@ -269,6 +269,17 @@ body {
   display: inline-block;
   padding-right: 60px;
 }
+  .rss-item a .rss-marquee + .rss-marquee {
+  visibility: hidden;
+  width: 0;
+  padding-right: 0;
+}
+
+.rss-item a.scrolling .rss-marquee + .rss-marquee {
+  visibility: visible;
+  width: auto;
+  padding-right: 60px;
+}
 /* ── footer ──────────────────────────────────────────────── */
 
 .foot {
