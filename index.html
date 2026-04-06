@@ -259,7 +259,10 @@ body {
 .rss-item a.scrolling .rss-marquee-track {
   animation: rss-scroll 8s linear infinite;
 }
-
+@keyframes rss-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-300px); }
+}
 .rss-marquee {
   display: inline-block;
   padding-right: 60px;
@@ -634,24 +637,16 @@ function NP_fetchFeed(fd) {
         if (track && marquee && marquee.offsetWidth > a.offsetWidth) {
           a.classList.add('scrolling');
           var pw = marquee.offsetWidth + 60;
-          track.style.animationName = 'none';
-          track.style.transform = 'translateX(0)';
-          track.style.transition = 'none';
-          track.style.animation = 'none';
-          track.style.setProperty('animation', 
-            'none');
-          // Force reflow
-          track.offsetWidth;
-          track.style.animation = '';
-          track.style.setProperty(
-            'animation',
-            'rss-scroll-' + j + ' 8s linear infinite'
-          );
-          var sheet = document.styleSheets[0];
-          sheet.insertRule(
-            '@keyframes rss-scroll-' + j + ' { 0% { transform: translateX(0); } 100% { transform: translateX(-' + pw + 'px); } }',
-            sheet.cssRules.length
-          );
+          try {
+            var sheet = document.styleSheets[0];
+            sheet.insertRule(
+              '@keyframes rss-scroll-' + j + ' { 0% { transform: translateX(0); } 100% { transform: translateX(-' + pw + 'px); } }',
+              sheet.cssRules.length
+            );
+            track.style.animation = 'rss-scroll-' + j + ' 8s linear infinite';
+          } catch(e) {
+            track.style.animation = 'rss-scroll 8s linear infinite';
+          }
         }
       }
     }, 500);
